@@ -1,4 +1,4 @@
 #!/bin/bash
 set -ex
 
-/usr/sbin/munged
+gosu munge /usr/sbin/munged

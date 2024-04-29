@@ -106,4 +106,4 @@ cmd ["/bin/bash", "/usr/local/bin/docker-entrypoint-client.sh"]
 
 USER sqpc_tech
 
-# CMD ["all"]
+CMD ["sleep", "180"]

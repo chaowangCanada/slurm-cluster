@@ -98,4 +98,4 @@ RUN set -x \
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
-CMD ["sleep" "10"]
+CMD ["all"]
