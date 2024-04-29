@@ -86,46 +86,45 @@ then
 
     echo "---> Starting the Slurm Database Daemon (slurmdbd) ..."
 
-    # {
-    #     . /etc/slurm/slurmdbd.conf
-    #     until echo "SELECT 1" | mysql -h localhost -u slurm -p password 2>&1 > /dev/null
-    #     do
-    #         echo "-- Waiting for database to become active ..."
-    #         sleep 2
-    #     done
-    # }
-    # echo "-- Database is now active ..."
+    {
+        . /etc/slurm/slurmdbd.conf
+        until echo "SELECT 1" | mysql -h localhost -u slurm -ppassword
+        do
+            echo "-- Waiting for database to become active ..."
+            sleep 2
+        done
+    }
+    echo "-- Database is now active ..."
 
     exec gosu slurm /usr/sbin/slurmdbd -Dvvv &
 
     echo "---> Waiting for slurmdbd to become active before starting slurmctld ..."
     sleep 5
 
-    # until 2>/dev/null >/dev/tcp/c1/6819
-    # do
-    #     echo "-- slurmdbd is not available.  Sleeping ..."
-    #     sleep 2
-    # done
-    # echo "-- slurmdbd is now active ..."
+    until nc -zv localhost 6819
+    do
+        echo "-- slurmdbd is not available.  Sleeping ..."
+        sleep 2
+    done
+    echo "-- slurmdbd is now active ..."
 
     echo "---> Starting the Slurm Controller Daemon (slurmctld) ..."
-    if /usr/sbin/slurmctld -V | grep -q '17.02' ; then
-        exec gosu slurm /usr/sbin/slurmctld -Dvvv &
-    else
-        exec gosu slurm /usr/sbin/slurmctld -i -Dvvv &
-    fi
+    exec gosu slurm /usr/sbin/slurmctld -i -Dvvv &
 
     echo "---> Waiting for slurmctld to become active before starting slurmd..."
-    sleep 10
-    # until 2>/dev/null >/dev/tcp/c1/6817
-    # do
-    #     echo "-- slurmctld is not available.  Sleeping ..."
-    #     sleep 2
-    # done
+    until nc -zv localhost 6817
+    do
+        echo "-- slurmctld is not available.  Sleeping ..."
+        sleep 2
+    done
     echo "-- slurmctld is now active ..."
 
     echo "---> Starting the Slurm Node Daemon (slurmd) ..."
     exec /usr/sbin/slurmd -Dvvv
+
+    sacctmgr add cluster linux
+    sacctmgr add account default Cluster=linux
+    sacctmgr add user name=sqpc_tech account=default
 fi
 
-# exec "$@"
+exec "$@"
